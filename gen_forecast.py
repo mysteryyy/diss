@@ -36,6 +36,8 @@ k = k.iloc[1:]
 k["pred_cov"] = None
 k["nu"] = None
 k["rmtind"] = None
+k["mu"] = None
+k["gamma"] = None
 dist = "t"
 window = 300
 
@@ -99,10 +101,12 @@ def get_res(useREig, useRMT, l, dist):
         if useRMT != None:
             k["rmtind"].loc[i + window + 1] = op.rmtindex
         k["mu"].loc[i + window + 1] = op.mu
+        if dist == "skew":
+            k["gamma"].loc[i + window + 1] = op.gamma
         objres = resobj(k)
 
-        with open("f{pid}_res.pkl", "wb") as outp:
-            pickle.dump(objres, outp, pickle.HIGHEST_PROTOCOL)
+    with open("f{pid}_res.pkl", "wb") as outp:
+        pickle.dump(objres, outp, pickle.HIGHEST_PROTOCOL)
 
 
 p1 = (True, True, None, "t")
@@ -112,11 +116,22 @@ p4 = (False, False, 3, "t")
 p5 = (True, True, None, "skew")
 p6 = (True, False, None, "skew")
 p7 = (False, True, 3, "skew")
+
+p1 = Process(target=get_res, args=p1)
+p2 = Process(target=get_res, args=p2)
+p3 = Process(target=get_res, args=p3)
+p4 = Process(target=get_res, args=p4)
+p5 = Process(target=get_res, args=p5)
+p6 = Process(target=get_res, args=p6)
+p7 = Process(target=get_res, args=p7)
+p1.start()
+p2.start()
+p3.start()
+p4.start()
+p5.start()
+p6.start()
+p7.start()
 # p8 = (False, False, 3, "skew")
-
-with Pool(8) as pool:
-
-    pool.starmap(get_res, [p1, p2, p3, p4, p5, p6, p7])
 
 print(k)
 k.to_pickle("t_const_l_results.pkl")
